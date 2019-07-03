@@ -1,0 +1,27 @@
+# 杀掉指定的8088端口进程
+
+lsof -i:8088 | gawk NR==2'{print $2}' | xargs kill -9
+
+cd /root/goprojs/gopath/src/github.com/grafana/grafana
+
+cd public/img
+
+./grafana-server
+
+
+# 打印第1206到底1211行
+gawk 'NR>=1206 && NR<=1211' master
+
+find . -depth 文件名
+
+# tmux 更改水平分割的窗口大小(上下移动)
+:resize-pane -D 20
+
+# 列出A目录下的所有包含a的文件名
+grep -rl 'a' ~/A 
+
+# 打印IP地址
+ifconfig|grep "inet " | grep -v 127.0.0.1 |gawk '{print $2}'
+
+# 防火墙相关
+firewall-cmd --list-all   # 查看所有打开端口
