@@ -840,3 +840,540 @@ export class AppComponent {
 }
 
 ```
+### GridList 头像
+```
+ng g c login/register --skipTests=true
+```
+
+
+
+```ts
+// 添加register路由
+login-routing.module.ts:
+...
+import {RegisterComponent} from './register/register.component';
+...
+
+const routes: Routes = [
+    {path:'login',component:LoginComponent},
+    {path:'register', Component:RegisterComponent  }  
+    
+];
+...
+
+```
+
+```html
+login.component.html:
+...
+<mat-card-actions class="text-right">
+<!-- routerLink路由 -->
+            <p>还没有账户?<a routerLink="/register">注册</a></p>
+            <p>忘记密码?<a href="">找回</a></p>
+</mat-card-actions>
+...
+```
+
+```ts
+svg.util.ts:
+// 添加头像的svg
+export const loadSvgResources = (ir:MatIconRegistry, ds:DomSanitizer) =>{
+  ...
+  const avatarDir = `${imgDir}/avatar`;
+  ...
+
+// 导入svg集合
+  ir.addSvgIconSetInNamespace('avatars',ds.bypassSecurityTrustResourceUrl(`${avatarDir}/avatars.svg`));
+  ...
+
+}
+
+register.component.ts:
+
+export class RegisterComponent implements OnInit {
+
+  items:string[];
+
+  constructor() { }
+
+  ngOnInit() {
+    const nums= [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
+    // map 函数通过对数组当中的每个元素进行处理返回一个新的数组,d就表示原数组中的元素
+    this.items = nums.map(d =>`avatars:svg-${d}`);
+  }
+
+}
+```
+
+```html
+register.component.html:
+
+<form>
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>注册:</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <!-- style.scss中定义full-width撑满空间 -->
+            <mat-form-field class="full-width">
+                <!-- <span matPreffix>@gmail.com</span> -->
+                <input matInput type="text" placeholder="您的email">
+                <!-- <span matSuffix>@gmail.com</span> -->
+            </mat-form-field>
+            <mat-form-field class="full-width">
+                <input matInput type="text" placeholder="姓名">
+            </mat-form-field>
+            <mat-form-field class="full-width">
+                <input matInput type="password" placeholder="您的密码">
+            </mat-form-field>
+            <mat-form-field class="full-width">
+                <input matInput type="password" placeholder="重复输入您的密码">
+            </mat-form-field>
+            <!-- shared.module.ts中要导入导出MatGridListModule -->
+            <mat-grid-list cols="6" > 
+                <!-- *ngFor 遍历-->
+                <mat-grid-tile *ngFor=" let item of items">
+                    <mat-icon class="avatar" [svgIcon]="item"></mat-icon>
+                </mat-grid-tile>        
+            </mat-grid-list>
+            <!-- 默认button为submit, 要指定type=button -->
+            <button mat-raised-button type="button">注册</button>
+        </mat-card-content>
+        <mat-card-actions class="text-right">
+            <p>还没有账户?<a href="">登录</a></p>
+            <p>忘记密码?<a href="">找回</a></p>
+        </mat-card-actions>
+    </mat-card>
+
+</form>
+
+```
+
+```css
+register.component.scss:
+
+mat-icon.avatar{
+    overflow:hidden;
+    width:64px;
+    height:64px;
+    border-radius:50%;
+    margin:12px;
+}
+
+mat-card {
+    width:600px;
+    
+}
+```
+
+
+### dialog 对话框
+```
+需要在模块中的entryComponents中声明
+传递数据: const dialogRef=dialog.open(YourDialog,{data:'your data',}); (调用者)
+接受数据":constructor(@Inject(MD_DIALOG_DATA public data:any)){}
+```
+
+#### 项目列表
+```
+ng g m project
+
+ng g c project/project-list
+
+ng g c project/project-item --skipTests=true
+
+ng g c project/new-project --skipTests=true
+
+ng g c project/invite --skipTests=true
+```
+
+```ts
+project.module.ts:
+
+@NgModule({
+  declarations: [
+    ProjectListComponent, 
+    ProjectItemComponent, 
+    NewProjectComponent, 
+    InviteComponent
+  ],
+  // 对话框需要出现在entryCoponents中
+  entryComponents:[
+    NewProjectComponent, 
+    InviteComponent
+  ],
+  imports: [
+    CommonModule
+  ]
+})
+```
+```html
+project-list.component.html:
+
+
+
+project-item.component.html:
+
+```
+
+```ts
+// 新建路由
+project-routing.module.ts:
+
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { ProjectListComponent } from './project-list/project-list.component';
+
+const routes: Routes = [
+    { path: 'project', component: ProjectListComponent }
+];
+
+@NgModule({
+    imports: [RouterModule.forChild(routes)],
+    exports: [RouterModule]
+})
+export class FeatureProjectRoutingModule {}
+
+
+project.module.ts:
+
+...
+import {ProjectRoutingModule} from './project-routing.module';
+...
+
+imports: [
+    SharedModule,
+    ProjectRoutingModule
+  ]
+
+app.module.ts:
+
+...
+import {ProjectModule} from './project/project.module';
+...
+imports: [          
+    ...
+    ProjectModule
+  ],
+
+app-routing.module.ts:
+
+const routes: Routes = [
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: 'project', redirectTo: '/project', pathMatch: 'full' }
+];
+
+```
+
+> 子组件 project-item与父组件project-list通讯
+```html
+<!-- [item] 父组件通过属性绑定到子组件输入属性 -->
+<app-project-item *ngFor="let project of projects"
+    [item]="project"
+    class="card"
+    >
+
+</app-project-item>
+
+<!-- 有图标的button -->
+<button class="fab-button" mat-fab type="button" (click)="openNewProjectDialog()">
+    <mat-icon>add</mat-icon>
+</button>
+```
+
+```css
+
+// card是flex元素
+.card{
+    height: 360px;
+    flex:0 0 360px;
+    margin: 10px;
+}
+
+// :host 表示选择器，选择当前的组件。
+:host{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;        // 折行
+}
+
+.fab-button{
+    position:fixed;
+    right:32px;
+    bottom:96px;
+    z-index:998;
+}
+```
+
+```ts
+
+project-item.component.ts:
+
+import { Component, OnInit,Input } from '@angular/core';
+
+@Component({
+  selector: 'app-project-item',
+  templateUrl: './project-item.component.html',
+  styleUrls: ['./project-item.component.scss']
+})
+export class ProjectItemComponent implements OnInit {
+  // 父组件绑定的属性
+  @Input() item;
+
+
+  constructor() { }
+
+  ngOnInit() {
+  }
+
+}
+```
+
+```html
+project-item.component.html:
+
+<mat-card>
+    <mat-card-header>
+        <mat-card-title>
+            {{item.name}}
+        </mat-card-title>
+    </mat-card-header>
+    <img mat-card-image [src]="item.coverImg" alt="项目封面">
+    <mat-card-content>
+        {{item.desc}}
+    </mat-card-content>
+    <mat-card-actions>
+        <button mat-button type="button">
+            <mat-icon>notes</mat-icon>
+            <span>编辑</span>
+        </button>
+        <button mat-button type="button">
+            <mat-icon>group_add</mat-icon>
+            <span>邀请</span>
+        </button>
+        <button mat-button type="button">
+            <mat-icon>delete</mat-icon>
+            <span>删除</span>
+        </button>
+    </mat-card-actions>
+</mat-card>
+```
+#### 新建项目
+```html
+new-project.component.html:
+
+<form>
+    <h2 mat-dialog-title>新建项目</h2>
+    <div mat-dialog-content>
+        <mat-form-field class="full-width">
+            <input matInput type="text" placeholder="项目名称">
+        </mat-form-field>
+        <mat-form-field class="full-width">
+            <input matInput type="text" placeholder="项目描述">
+        </mat-form-field>
+    </div>
+    <div mat-dialog-actions>
+        <button type="button" mat-raised-button color="primary">保存</button>
+        <button type="button" mat-button mat-dialog-close>关闭</button>
+    </div>
+</form>
+```
+
+```html
+<!-- Dialog的调用者：project-list.component.html: -->
+...
+<button class="fab-button" mat-fab type="button" (click)="openNewProjectDialog()">
+    <mat-icon>add</mat-icon>
+</button>
+```
+
+```ts
+project-list.component.ts:
+import { Component, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material';
+import { NewProjectComponent } from '../new-project/new-project.component'
+
+@Component({
+  selector: 'app-project-list',
+  templateUrl: './project-list.component.html',
+  styleUrls: ['./project-list.component.scss']
+})
+export class ProjectListComponent implements OnInit {
+
+  ...
+
+  constructor(private dialog: MatDialog) { }
+
+  ngOnInit() {
+  }
+
+  openNewProjectDialog() {
+    // 传递数据
+    openNewProjectDialog() {
+      // 获得dialogRef引用
+    const dialogRef = this.dialog.open(NewProjectComponent,{data:'this is my data sent'});
+    dialogRef.afterClosed().subscribe(result =>console.log(result));
+  }
+  }
+
+}
+
+// 需要在shared.module.ts中导入导出MatDialogModule
+
+new-project.component.ts:
+
+import { Component, OnInit, Inject} from '@angular/core';
+import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';
+@Component({
+  selector: 'app-new-project',
+  templateUrl: './new-project.component.html',
+  styleUrls: ['./new-project.component.scss']
+})
+export class NewProjectComponent implements OnInit {
+// MatDialogRef用于Dialog往调用处传数据
+  constructor(@Inject(MAT_DIALOG_DATA) private data,private dialogRef: MatDialogRef<NewProjectComponent>) { }
+
+  ngOnInit() {
+    console.log(JSON.stringify(this.data))
+  }
+
+  onClick(){
+    this.dialogRef.close('I received your message');
+  }
+
+}
+
+```
+
+#### Autocomplete
+```html
+invite.component.html:
+
+<form>
+    <h2 mat-dialog-title>邀请组员:</h2>
+    <div mat-dialog-content>
+        <mat-form-field class="full-width">
+            <input matInput type="text" placeholder="组员姓名" [matAutocomplete]="autoMembers">
+        </mat-form-field>
+        <mat-form-field class="full-width">
+            <input matInput type="text" placeholder="项目描述">
+        </mat-form-field>
+    </div>
+    <div mat-dialog-actions>
+        <button type="button" mat-raised-button color="primary" (click)="onClick()">保存</button>
+        <button type="button" mat-button mat-dialog-close>关闭</button>
+    </div>
+</form>
+<!-- autoMembers 引用与[matAutocomplete]指令中相同-->
+<!--  [displayWith]="displayUser" 而不是playWith]="displayUser()"表明传入的是函数而不是函数的返回结果-->
+
+<mat-autocomplete #autoMembers="matAutocomplete" [displayWith]="displayUser">
+    <mat-option *ngFor="let item of items" [value]="item">
+        {{item.name}}
+    </mat-option>
+</mat-autocomplete>
+```
+
+```ts
+
+invite.component.ts:
+
+
+export class InviteComponent implements OnInit {
+
+  items = [
+    {
+      id: 1,
+      name: 'zhangsan',
+    },
+    {
+      id: 2,
+      name: 'lisi',
+    },
+    {
+      id: 3,
+      name: 'wangwu',
+    }
+  ]
+
+  ...
+
+  // displayUser中的参数与html 中[value]=items中的items关联,所以参数名可以随便取,实际传进来的是items
+  displayUser(user:{id:string;name:string}){
+      return user ? user.name : '';
+  }
+}
+
+```
+
+```html
+project-item.component.html:
+
+<mat-card>
+    ...
+    <mat-card-actions>
+        ...
+        <!-- 点击邀请触发事件 -->
+        <button mat-button type="button" (click)="onInviteClick()">
+            <mat-icon>group_add</mat-icon>
+            <span>邀请</span>
+        </button>
+        ...
+</mat-card>
+```
+
+```ts
+import { Component, OnInit,Input,Output,EventEmitter } from '@angular/core';
+...
+export class ProjectItemComponent implements OnInit {
+  @Input() item;
+  @Output() onInvite = new EventEmitter<void>();
+
+  ...
+
+  onInviteClick(){
+    // 向父组件传递事件,此处为通知此事件发生
+    this.onInvite.emit();
+  
+  }
+
+}
+```
+
+```html
+project-list.component.html:
+<!--[item] 父组件通过属性绑定到子组件输入属性 -->
+<app-project-item *ngFor="let project of projects"
+    [item]="project"
+    class="card"
+    (onInvite)="launchInviteDialog()"
+    >
+    <!-- (onInvite)="launchInviteDialog() 接收子组件发来的onInvite事件通知并调用launchInviteDialog()处理 -->
+</app-project-item>
+...
+```
+
+```ts
+
+import { Component, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material';
+import { NewProjectComponent } from '../new-project/new-project.component'
+import { InviteComponent } from '../invite/invite.component';
+
+@Component({
+  selector: 'app-project-list',
+  templateUrl: './project-list.component.html',
+  styleUrls: ['./project-list.component.scss']
+})
+export class ProjectListComponent implements OnInit {
+
+  ...
+
+  launchInviteDialog(){
+    const dialogRef = this.dialog.open(InviteComponent);
+    dialogRef.afterClosed().subscribe(result =>console.log(result));
+  }
+
+}
+
+```
